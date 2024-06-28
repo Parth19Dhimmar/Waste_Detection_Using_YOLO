@@ -11,6 +11,7 @@ def read_yaml_file(file_path : str):
         with open(file_path, 'rb') as yaml_file:
             logging.info("Read yaml file successfully!")
             data = yaml.safe_load(yaml_file)
+        return data
     except Exception as e:
         raise CustomException(e, sys)
     

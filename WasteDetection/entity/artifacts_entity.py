@@ -1,0 +1,8 @@
+import os
+from dataclasses import dataclass
+from WasteDetection.entity.config_entity import DataIngestionConfig
+
+@dataclass
+class DataIngestionArtifact:
+    data_zip_file_path : str
+    feature_store_path : str
