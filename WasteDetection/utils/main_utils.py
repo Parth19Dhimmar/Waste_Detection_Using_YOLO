@@ -23,12 +23,13 @@ def save_yaml_file(file_path : str, content : object, replace : bool = False) ->
             
             os.makedirs(os.path.dirname(file_path), exist_ok = True)
 
-            with open(file_path, 'wb') as yaml_file:
+            with open(file_path, 'w') as yaml_file:
                 yaml.dump(content, yaml_file)
                 logging.info("Saved yaml file successfully")
 
     except Exception as e:
         raise CustomException(e, sys)
+
     
 
 def encodeImageIntoBase64(image_path):

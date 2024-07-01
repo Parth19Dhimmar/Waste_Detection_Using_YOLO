@@ -20,7 +20,6 @@ class DataIngestionConfig:
 
 
 @dataclass
-
 class DataValidationConfig:
 
     data_validation_dir = os.path.join(training_pipeline_config.artifacts_dir, DATA_VALIDATION_DIR )
@@ -29,3 +28,13 @@ class DataValidationConfig:
 
     required_file_list = REQUIRED_FILE_LIST
 
+@dataclass
+class ModelTrainerConfig:
+
+    model_trainer_dir = os.path.join(training_pipeline_config.artifacts_dir, MODEL_TRAINER_DIR)
+
+    model_weight_name = MODEL_TRAINER_PRETRAINED_WEIGHT_NAME
+
+    model_epochs = MODEL_TRAINER_NO_EPOCHS
+
+    model_batch_size = MODEL_TRAINER_BATCH_SIZE
