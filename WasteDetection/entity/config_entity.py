@@ -19,3 +19,13 @@ class DataIngestionConfig:
     data_download_url = DATA_DOWNLOAD_URL
 
 
+@dataclass
+
+class DataValidationConfig:
+
+    data_validation_dir = os.path.join(training_pipeline_config.artifacts_dir, DATA_VALIDATION_DIR )
+
+    valid_status_file_dir = os.path.join(data_validation_dir, VALID_STATUS_FILE_DIR)
+
+    required_file_list = REQUIRED_FILE_LIST
+

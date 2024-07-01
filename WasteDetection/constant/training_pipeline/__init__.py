@@ -14,3 +14,9 @@ DATA_DOWNLOAD_URL : str = "https://drive.google.com/file/d/1ECfl3dtYyfivY8kYPq7R
 """
 Data Validation related constant
 """
+
+DATA_VALIDATION_DIR :str = "data_validation"
+
+VALID_STATUS_FILE_DIR = "status.txt"
+
+REQUIRED_FILE_LIST = ['train', 'valid', 'data.yaml']
