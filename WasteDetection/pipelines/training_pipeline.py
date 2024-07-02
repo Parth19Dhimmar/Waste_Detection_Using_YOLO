@@ -65,9 +65,17 @@ class TrainPipeline:
 
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact = data_ingestion_artifact)
             
-            model_trainer_artifact = self.start_model_trainer()
+            if data_validation_artifact.validation_status == True:
+                model_trainer_artifact = self.start_model_trainer()
+            else:
+                raise Exception("Not all data found or Data is not in correct format.")
 
             return model_trainer_artifact
 
         except Exception as e:
             raise CustomException(e, sys)
+
+if __name__ == "__main__":
+    obj = TrainPipeline()
+    obj.run_train_pipeline()
+    print("The training has been completed sucessfully!")

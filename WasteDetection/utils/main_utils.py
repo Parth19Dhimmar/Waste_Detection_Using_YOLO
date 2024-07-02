@@ -30,8 +30,6 @@ def save_yaml_file(file_path : str, content : object, replace : bool = False) ->
     except Exception as e:
         raise CustomException(e, sys)
 
-    
-
 def encodeImageIntoBase64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read())
