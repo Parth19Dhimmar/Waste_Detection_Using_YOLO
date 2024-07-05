@@ -2,6 +2,7 @@ import sys
 import os
 import yaml
 import base64
+from pathlib import Path
 
 from WasteDetection.logger import logging
 from WasteDetection.exception import CustomException
@@ -36,6 +37,6 @@ def encodeImageIntoBase64(image_path):
 
 def decodeImage(encoded_img_string, filename):
     decoded_string = base64.b64decode(encoded_img_string)
-    with open("./data/" + filename, 'wb') as image_file:
+    with open(Path("./data/" + filename), 'wb') as image_file:
         image_file.write(decoded_string)
         image_file.close()
