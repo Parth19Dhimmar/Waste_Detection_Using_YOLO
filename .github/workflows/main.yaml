@@ -1,0 +1,99 @@
+name : Deploy to Amazon ECS
+
+#run-name: Deploy to ${{ inputs.deploy_target }} by @${{ github.actor }}
+
+#to trigger workflow
+on: 
+  push:
+    branches:
+      - main     #branches filter can be added to triger when only filter matches
+
+
+#defining access for the GITHUB_TOKEN
+permissions:       # or everything read-all
+  id_token: write
+  contents: read
+
+#jobs runner
+
+jobs: 
+  integration:   #job_id,
+    name: Continuous Integration:
+    #needs : job1  -- to specify if any depencies before running current job, here says required job1 to be completed 
+    runs-on: ubuntu-latest  # type of machine to run the job, here github hosted runner
+    steps: # contains sequence of tasks , all actions run a step, has own process --> changes to environment variables are not preserved between steps, Lists the sequence of actions or tasks that make up the job.
+      - name: Checkout Code #name to display on github
+        #select the action to run as part of step in the job
+        uses: actions/checkout@v3  #to get code of repo to runnable environment
+
+      - name: Lint code
+        run: echo "Linting repository"
+
+      - name: Run unit tests
+        run: echo "Running unit tests"
+  
+  build-and-push-ecr-image:
+    name: Continuous Delievery:
+    needs: integration   #dependency of jobs before this to run
+    runs-on: latest-ubuntu
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Install Dependencies
+        run: |
+          sudo apt get --update
+          sudo apt-get install -y jq unzip
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecs-login@v1  # prebuilt aws-actions
+        
+      - name: Build, tag and push image to Amazon ECR
+        id: build-image
+        env: 
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG : latest
+        run:
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . #building a docker container
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG       # pushing it to ECR, then can be deployed to ECS
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"  #so that can use the output value in other step if needed
+
+  deployment:
+    name: Continuous Deployment
+    needs: build-and-push-ecr-image
+    runs-on: self-hosted
+    - name: Checkout Code
+        uses: actions/checkout@v3
+      
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecs-login@v1 
+
+    - name: Pull latest images
+      run: |
+        docker pull ${{secrets.AWS_ECS_LOGIN_URI}}/${{secrets.ECR_REPOSITORY_NAME}}:latest
+
+    - name: Run Docker image
+      run: |
+        docker run -d -p 5000:5000 --ipc="host" --name=WasteDetection -e -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}' ${{secrets.AWS_ECR_LOGIN_URI}}/${{secrets.ECR_REPOSITORY_NAME}}:latest
+
+    - name: Clean previous images and containers 
+      run: |
+        docker system prune -f
+
